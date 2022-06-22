@@ -1,0 +1,310 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: jump-app-dev
+---
+# Source: jump-app/charts/jump-app-micros/templates/jump-app/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: back-golang
+    version: v1
+  name: back-golang-v1
+  namespace: jump-app-dev
+spec:
+  ports:
+    - name: http-8442
+      port: 8442
+      protocol: 
+      targetPort: 8442   
+  selector:
+    app: back-golang
+    version: v1
+---
+# Source: jump-app/charts/jump-app-micros/templates/jump-app/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: back-python
+    version: v1
+  name: back-python-v1
+  namespace: jump-app-dev
+spec:
+  ports:
+    - name: http-8444
+      port: 8444
+      protocol: 
+      targetPort: 8080   
+  selector:
+    app: back-python
+    version: v1
+---
+# Source: jump-app/charts/jump-app-micros/templates/jump-app/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: back-quarkus
+    version: v1
+  name: back-quarkus-v1
+  namespace: jump-app-dev
+spec:
+  ports:
+    - name: http-8445
+      port: 8445
+      protocol: 
+      targetPort: 8080   
+  selector:
+    app: back-quarkus
+    version: v1
+---
+# Source: jump-app/charts/jump-app-micros/templates/jump-app/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: back-springboot
+    version: v1
+  name: back-springboot-v1
+  namespace: jump-app-dev
+spec:
+  ports:
+    - name: http-8443
+      port: 8443
+      protocol: 
+      targetPort: 8443   
+  selector:
+    app: back-springboot
+    version: v1
+---
+# Source: jump-app/charts/jump-app-micros/templates/jump-app/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: front-javascript
+    version: v1
+  name: front-javascript-v1
+  namespace: jump-app-dev
+spec:
+  ports:
+    - name: http-8080
+      port: 8080
+      protocol: 
+      targetPort: 3000   
+  selector:
+    app: front-javascript
+    version: v1
+---
+# Source: jump-app/charts/jump-app-micros/templates/jump-app/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: back-golang
+    version: v1
+  name: back-golang-v1
+  namespace: jump-app-dev
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: back-golang
+  template:
+    metadata:
+      labels:
+        name: back-golang-v1
+        app: back-golang
+        version: v1
+    spec:
+      containers:
+      - image: quay.io/acidonpe/jump-app-back-golang:latest
+        imagePullPolicy: Always
+        name: back-golang-v1
+        ports:
+          - containerPort: 8442
+            protocol: TCP
+        resources: {}
+        env:  
+          - name: APP_REF_NAME
+            value: jump-app
+---
+# Source: jump-app/charts/jump-app-micros/templates/jump-app/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: back-python
+    version: v1
+  name: back-python-v1
+  namespace: jump-app-dev
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: back-python
+  template:
+    metadata:
+      labels:
+        name: back-python-v1
+        app: back-python
+        version: v1
+    spec:
+      containers:
+      - image: quay.io/acidonpe/jump-app-back-python:latest
+        imagePullPolicy: Always
+        name: back-python-v1
+        ports:
+          - containerPort: 8080
+            protocol: TCP
+        resources: {}
+        env:  
+          - name: APP_REF_NAME
+            value: jump-app
+---
+# Source: jump-app/charts/jump-app-micros/templates/jump-app/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: back-quarkus
+    version: v1
+  name: back-quarkus-v1
+  namespace: jump-app-dev
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: back-quarkus
+  template:
+    metadata:
+      labels:
+        name: back-quarkus-v1
+        app: back-quarkus
+        version: v1
+    spec:
+      containers:
+      - image: quay.io/acidonpe/jump-app-back-quarkus:latest
+        imagePullPolicy: Always
+        name: back-quarkus-v1
+        ports:
+          - containerPort: 8080
+            protocol: TCP
+        resources: {}
+        env:  
+          - name: APP_REF_NAME
+            value: jump-app
+---
+# Source: jump-app/charts/jump-app-micros/templates/jump-app/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: back-springboot
+    version: v1
+  name: back-springboot-v1
+  namespace: jump-app-dev
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: back-springboot
+  template:
+    metadata:
+      labels:
+        name: back-springboot-v1
+        app: back-springboot
+        version: v1
+    spec:
+      containers:
+      - image: quay.io/acidonpe/jump-app-back-springboot:latest
+        imagePullPolicy: Always
+        name: back-springboot-v1
+        ports:
+          - containerPort: 8443
+            protocol: TCP
+          - containerPort: 8443
+            protocol: TCP
+        resources: {}
+        env:  
+          - name: APP_REF_NAME
+            value: jump-app
+---
+# Source: jump-app/charts/jump-app-micros/templates/jump-app/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: front-javascript
+    version: v1
+  name: front-javascript-v1
+  namespace: jump-app-dev
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: front-javascript
+  template:
+    metadata:
+      labels:
+        name: front-javascript-v1
+        app: front-javascript
+        version: v1
+    spec:
+      containers:
+      - image: quay.io/acidonpe/jump-app-front-javascript:latest
+        imagePullPolicy: Always
+        name: front-javascript-v1
+        ports:
+          - containerPort: 3000
+            protocol: TCP
+        resources: {}
+        env:  
+          - name: APP_REF_NAME
+            value: jump-app
+          - name: REACT_APP_BACK
+            value: https://back-golang-jump-app-dev.apps.chaos.sandbox1817.opentlc.com/jump
+          - name: REACT_APP_GOLANG
+            value: http://back-golang-v1:8442
+          - name: REACT_APP_PYTHON
+            value: http://back-python-v1:8444
+          - name: REACT_APP_QUARKUS
+            value: http://back-quarkus-v1:8445
+          - name: REACT_APP_SPRINGBOOT
+            value: http://back-springboot-v1:8443
+---
+# Source: jump-app/charts/jump-app-micros/templates/jump-app/route.yaml
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: back-golang
+  namespace: jump-app-dev
+spec:
+  to:
+    kind: Service
+    name: back-golang-v1
+  port:
+    targetPort: http-8442
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect
+  wildcardPolicy: None
+---
+# Source: jump-app/charts/jump-app-micros/templates/jump-app/route.yaml
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: front-javascript
+  namespace: jump-app-dev
+spec:
+  to:
+    kind: Service
+    name: front-javascript-v1
+  port:
+    targetPort: http-8080
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect
+  wildcardPolicy: None
