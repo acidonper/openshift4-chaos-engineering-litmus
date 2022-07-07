@@ -1,0 +1,222 @@
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: back-golang
+  namespace: jump-app-dev
+spec:
+  gateways:
+  - back-golang
+  - mesh
+  hosts:
+  - back-golang-jump-app-dev.apps.chaos.sandbox1817.opentlc.com
+  - back-golang-v1
+  http:
+  - route:
+      - destination:
+          host: back-golang-v1.jump-app-dev.svc.cluster.local
+          subset: v1
+        weight: 100
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: back-python
+  namespace: jump-app-dev
+spec:
+  gateways:
+  - mesh
+  hosts:
+  - back-python-v1
+  http:
+  - route:
+      - destination:
+          host: back-python-v1.jump-app-dev.svc.cluster.local
+          subset: v1
+        weight: 100
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: back-quarkus
+  namespace: jump-app-dev
+spec:
+  gateways:
+  - mesh
+  hosts:
+  - back-quarkus
+  http:
+  - route:
+      - destination:
+          host: back-quarkus.jump-app-dev.svc.cluster.local
+          subset: v1
+        weight: 100
+    retries:
+      attempts: 5
+      perTryTimeout: 2s
+      retryOn: connect-failure,refused-stream,503
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: back-springboot
+  namespace: jump-app-dev
+spec:
+  gateways:
+  - mesh
+  hosts:
+  - back-springboot-v1
+  http:
+  - route:
+      - destination:
+          host: back-springboot-v1.jump-app-dev.svc.cluster.local
+          subset: v1
+        weight: 100
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: front-javascript
+  namespace: jump-app-dev
+spec:
+  gateways:
+  - front-javascript
+  - mesh
+  hosts:
+  - front-javascript-jump-app-dev.apps.chaos.sandbox1817.opentlc.com
+  - front-javascript-v1
+  http:
+  - route:
+      - destination:
+          host: front-javascript-v1.jump-app-dev.svc.cluster.local
+          subset: v1
+        weight: 100
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: back-golang
+  namespace: jump-app-dev
+spec:
+  host: back-golang-v1.jump-app-dev.svc.cluster.local
+  subsets:
+  - name: v1
+    labels:
+      version: v1
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: back-python
+  namespace: jump-app-dev
+spec:
+  host: back-python-v1.jump-app-dev.svc.cluster.local
+  subsets:
+  - name: v1
+    labels:
+      version: v1
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: back-quarkus
+  namespace: jump-app-dev
+spec:
+  host: back-quarkus.jump-app-dev.svc.cluster.local
+  subsets:
+  - name: v1
+    labels:
+      root: back-quarkus
+    trafficPolicy:
+      outlierDetection:
+        consecutive5xxErrors: 2
+        interval: 1m
+        baseEjectionTime: 15m
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: back-springboot
+  namespace: jump-app-dev
+spec:
+  host: back-springboot-v1.jump-app-dev.svc.cluster.local
+  subsets:
+  - name: v1
+    labels:
+      version: v1
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: front-javascript
+  namespace: jump-app-dev
+spec:
+  host: front-javascript-v1.jump-app-dev.svc.cluster.local
+  subsets:
+  - name: v1
+    labels:
+      version: v1
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
+metadata:
+  name: back-golang
+  namespace: jump-app-dev
+spec:
+  selector:
+    istio: ingressgateway
+  servers:
+    - port:
+        number: 80
+        name: http
+        protocol: HTTP
+      hosts:
+      - back-golang-jump-app-dev.apps.chaos.sandbox1817.opentlc.com
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
+metadata:
+  name: front-javascript
+  namespace: jump-app-dev
+spec:
+  selector:
+    istio: ingressgateway
+  servers:
+    - port:
+        number: 80
+        name: http
+        protocol: HTTP
+      hosts:
+      - front-javascript-jump-app-dev.apps.chaos.sandbox1817.opentlc.com
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: back-golang
+  namespace: istio-system
+spec:
+  host: back-golang-jump-app-dev.apps.chaos.sandbox1817.opentlc.com
+  to:
+    kind: Service
+    name: istio-ingressgateway
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect
+  port:
+    targetPort: http2
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: front-javascript
+  namespace: istio-system
+spec:
+  host: front-javascript-jump-app-dev.apps.chaos.sandbox1817.opentlc.com
+  to:
+    kind: Service
+    name: istio-ingressgateway
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect
+  port:
+    targetPort: http2

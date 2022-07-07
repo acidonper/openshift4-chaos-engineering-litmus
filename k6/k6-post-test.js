@@ -26,7 +26,7 @@ export default function testSuite() {
         'http://back-golang-v1:8442',
         'http://back-springboot-v1:8443',
         'http://back-python-v1:8444',
-        'http://back-quarkus-v1:8445'
+        'http://back-quarkus:8445'
     ],
   };
 

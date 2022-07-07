@@ -1,0 +1,4 @@
+portalScope: namespace
+portal.server.service.type: ClusterIP
+portal.frontend.service.type: ClusterIP
+openshift.route.enabled: true

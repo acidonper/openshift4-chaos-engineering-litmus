@@ -28,14 +28,7 @@ oc new-project litmus
 
 helm repo add litmuschaos https://litmuschaos.github.io/litmus-helm
 
-cat <<EOF > override-openshift.yaml
-portalScope: namespace
-portal.server.service.type: ClusterIP
-portal.frontend.service.type: ClusterIP
-openshift.route.enabled: true
-EOF
-
-helm install chaos litmuschaos/litmus --namespace=litmus -f override-openshift.yaml
+helm install chaos litmuschaos/litmus --namespace=litmus -f examples/override-openshift.yaml
 ```
 
 - In order to allow the Litmus pods to run, it is required to assign some permission to the SAs
@@ -144,11 +137,12 @@ oc apply -f ocp/jump-app.yaml
 ```$bash
 oc get pods -n jump-app-dev
 NAME                                   READY   STATUS    RESTARTS   AGE
-back-golang-v1-7844f5d7cc-kjx2f        1/1     Running   0          107s
-back-python-v1-6c76df74d7-86j2l        1/1     Running   0          106s
-back-quarkus-v1-65748f6b87-rcbrq       1/1     Running   0          106s
-back-springboot-v1-7c64f6b789-lv296    1/1     Running   0          105s
-front-javascript-v1-598dbf654d-qhth6   1/1     Running   0          105s
+back-golang-v1-7844f5d7cc-v879m       1/1     Running   0          2m18s
+back-python-v1-6c76df74d7-r26nf       1/1     Running   0          2m18s
+back-quarkus-v1-58b8c499cc-bng6c      1/1     Running   0          2m17s
+back-quarkus-v2-555984b5b9-ppbzm      1/1     Running   0          2m17s
+back-springboot-v1-7c64f6b789-xbk6v   1/1     Running   0          2m17s
+front-javascript-v1-75c548bd9-t4tcz   1/1     Running   0          2m16s
 ```
 
 - Access *Jump App* backend
@@ -164,7 +158,7 @@ curl -k -H "Content-type: application/json" -d '{
         "http://back-golang-v1:8442",
         "http://back-springboot-v1:8443",
         "http://back-python-v1:8444",
-        "http://back-quarkus-v1:8445"
+        "http://back-quarkus:8445"
     ]
 }' https://$HOST/jump
 
@@ -230,7 +224,7 @@ The following subsections collect the required procedures to execute a set of ch
 
 ### Test 01 (Non Resilient Configuration - KO)
 
-During this test, the kaos engineering test will delete 66% of the pods, in this case the 1/1 replicas, every 10 secs over 30 secs. The *Jump App* configuration makes some service loss appear during the chaos test execution.
+During this test, the kaos engineering test will delete 80% of the pods, in this case the 1/1 replicas, every 30 secs over 2 minutes. The *Jump App* configuration makes some service loss appear during the chaos test execution.
 
 Please execute the following procedure to perform the chaos test and collect the respective information:
 
@@ -263,11 +257,12 @@ oc get route chaos-litmus-frontend-service -n litmus --template='{{ .spec.host }
 ```$bash
 oc get pods -n jump-app-dev
 NAME                                   READY   STATUS    RESTARTS   AGE
-back-golang-v1-7844f5d7cc-kjx2f        1/1     Running   0          99m
-back-python-v1-6c76df74d7-42jgx        1/1     Running   0          78s  <-------
-back-quarkus-v1-65748f6b87-rcbrq       1/1     Running   0          99m
-back-springboot-v1-7c64f6b789-lv296    1/1     Running   0          99m
-front-javascript-v1-594cb6f4c9-29q85   1/1     Running   0          95m
+back-golang-v1-7844f5d7cc-89prb       1/1     Running   0          12m26s
+back-python-v1-6c76df74d7-28cpv       1/1     Running   0          12m26s
+back-quarkus-v1-7dfb678b9f-gw5sh      1/1     Running   0          78s    <-------
+back-quarkus-v2-74cf8cd8dc-cdhzn      1/1     Running   0          12m25s
+back-springboot-v1-7c64f6b789-jt8wr   1/1     Running   0          12m25s
+front-javascript-v1-75c548bd9-k5wqz   1/1     Running   0          12m25s
 ```
 
 - Review the HTTP POST user load
@@ -301,9 +296,9 @@ default ✓ [======================================] 10 VUs  10m0s
 
 NOTE: As the previous k6 test load result shows, there have been some requests lost
 
-### Test 02 (Resilient Configuration - OK)
+### Test 02 (Partial Resilient Configuration - KO)
 
-During this test, the kaos engineering test will delete 66% of the pods, in this case the 3/5 replicas, every 10 secs over 30 secs. The *Jump App* configuration avoids all service loss during the chaos test execution.
+During this test, the kaos engineering test will delete 80% of the pods, in this case the 4/5 replicas, every 30 secs over 2 minutes. The *Jump App* configuration avoids the most part of the service loss during the chaos test execution.
 
 Please execute the following procedure to perform the chaos test and collect the respective information:
 
@@ -338,12 +333,12 @@ oc get route chaos-litmus-frontend-service -n litmus --template='{{ .spec.host }
 oc get pods -n jump-app-dev
 NAME                                   READY   STATUS    RESTARTS       AGE
 ...
-back-golang-v1-7844f5d7cc-xzc6g        1/1     Running   0              5m18s
-back-python-v1-6c76df74d7-hr5z6        1/1     Running   0              2m32s  <-------
-back-python-v1-6c76df74d7-kxhtm        1/1     Running   0              2m46s  <-------
-back-python-v1-6c76df74d7-m72jc        1/1     Running   0              2m32s  <-------
-back-python-v1-6c76df74d7-rzlwd        1/1     Running   0              2m32s  <-------
-back-python-v1-6c76df74d7-w9v9d        1/1     Running   0              2m32s  <-------
+back-golang-v1-7844f5d7cc-xzc6g         1/1     Running   0              5m18s
+back-quarkus-v1-6c76df74d7-hr5z6        1/1     Running   0              2m32s  <-------
+back-quarkus-v1-6c76df74d7-kxhtm        1/1     Running   0              2m46s  <-------
+back-quarkus-v1-6c76df74d7-m72jc        1/1     Running   0              2m32s  <-------
+back-quarkus-v1-6c76df74d7-rzlwd        1/1     Running   0              2m32s  <-------
+back-quarkus-v1-6c76df74d7-w9v9d        1/1     Running   0              2m32s  <-------
 ...
 
 ```
@@ -352,31 +347,223 @@ back-python-v1-6c76df74d7-w9v9d        1/1     Running   0              2m32s  <
 
 ```$bash
 ...
-running (10m01.1s), 00/10 VUs, 5166 complete and 0 interrupted iterations
+running (10m01.1s), 00/10 VUs, 5237 complete and 0 interrupted iterations
+default ✓ [======================================] 10 VUs  10m0s
+
+     ✗ status was 200
+      ↳  99% — ✓ 5235 / ✗ 2
+
+     checks.........................: 99.96% ✓ 5235     ✗ 2   
+     data_received..................: 3.9 MB 6.5 kB/s
+     data_sent......................: 1.9 MB 3.1 kB/s
+     http_req_blocked...............: avg=2.03ms   min=1.51µs   med=8.37µs   max=602.32ms p(90)=12.94µs  p(95)=15.71µs 
+     http_req_connecting............: avg=678.46µs min=0s       med=0s       max=155.63ms p(90)=0s       p(95)=0s      
+     http_req_duration..............: avg=143.34ms min=112.44ms med=136.32ms max=2.16s    p(90)=162.34ms p(95)=179.22ms
+       { expected_response:true }...: avg=143.29ms min=112.44ms med=136.32ms max=2.16s    p(90)=162.33ms p(95)=178.94ms
+     http_req_failed................: 0.03%  ✓ 2        ✗ 5235
+     http_req_receiving.............: avg=301.49µs min=0s       med=326.04µs max=2.33ms   p(90)=455.06µs p(95)=502.76µs
+     http_req_sending...............: avg=36.08µs  min=6.55µs   med=38.46µs  max=282.8µs  p(90)=59.29µs  p(95)=67.51µs 
+     http_req_tls_handshaking.......: avg=659.92µs min=0s       med=0s       max=133.34ms p(90)=0s       p(95)=0s      
+     http_req_waiting...............: avg=143ms    min=112.05ms med=135.99ms max=2.16s    p(90)=162.09ms p(95)=178.78ms
+     http_reqs......................: 5237   8.711778/s
+     iteration_duration.............: avg=1.14s    min=1.11s    med=1.13s    max=3.16s    p(90)=1.16s    p(95)=1.18s   
+     iterations.....................: 5237   8.711778/s
+     vus............................: 2      min=2      max=10
+     vus_max........................: 10     min=10     max=10
+```
+
+NOTE: As the previous k6 test load result shows, everything worked well
+
+
+### Test 03 (Resilient Configuration based on Red Hat Openshift Service Mesh - OK)
+
+#### Setting Up Red Hat Openshift Service Mesh
+
+First of all, it is required to install the required operators and create a set of resources to deploy the Red Hat Openshift Service Mesh solution based on Istio.
+
+Please follow the next steps to deploy the solution:
+
+- Install Red Hat Openshift Service Mesh operators and deploy the mesh
+
+```$bash
+sh scripts/setup_istio.sh
+```
+
+- Reload Jump App application pods and restablish the original pod replicas
+
+```$bash
+for i in $(oc get deployment -n jump-app-dev | grep -v NAME | awk '{ print $1}'); do oc scale --replicas=1 deployment/$i -n jump-app-dev; don
+
+oc get pods -n jump-app-dev | grep -v NAME | awk '{ print "oc delete pod " $1 " -n jump-app-dev --force --grace-period 0"}' | sh
+```
+
+- Delete previous routes
+
+```$bash
+oc get routes -n jump-app-dev | grep -v NAME | awk '{ print "oc delete routes " $1 " -n jump-app-dev"}' | sh
+```
+
+- Define the Openshift's application domain correctly
+
+```$bash
+DOMAIN="<ocp_apps_domain>" (E.g. apps.chaos.sandbox1817.opentlc.com)
+sed "s|apps.chaos.sandbox1817.opentlc.com|$DOMAIN|g" -i ocp/jump-app-mesh.yaml
+```
+
+- Create the required mesh objects
+
+```$bash
+oc apply -f ocp/jump-app-mesh.yaml
+```
+
+- Access *Jump App* backend
+
+```$bash
+HOST=$(oc get route back-golang -n istio-system --template='{{ .spec.host }}')
+
+curl -k -H "Content-type: application/json" -d '{
+    "message": "Hello",
+    "last_path": "/jump",
+    "jump_path": "/jump",
+    "jumps": [
+        "http://back-golang-v1:8442",
+        "http://back-springboot-v1:8443",
+        "http://back-python-v1:8444",
+        "http://back-quarkus:8445"
+    ]
+}' https://$HOST/jump
+
+...
+{"code":200,"message":"/jump - Greetings from Quarkus!"}%
+```
+
+#### Execute the test
+
+During this test, the kaos engineering test will delete 80% of the pods, in this case the 4/5 replicas, every 30 secs over 2 minutes. The *Jump App* configuration and Red Hat Openshift Service Mesh make possible to avoid all service loss during the chaos test execution.
+
+Please execute the following procedure to perform the chaos test and collect the respective information:
+
+- Extend the number of replicas
+
+```$bash
+for i in $(oc get deployment -n jump-app-dev | grep -v NAME | awk '{ print $1}'); do oc scale --replicas=1 deployment/$i -n jump-app-dev; done
+```
+
+- Execute the HTTP POST user load (*This process is running during the chaos test execution*)
+
+```$bash
+TEST_URL=$URL k6 run --vus 10 --duration 600s k6/k6-post-test.js
+```
+
+- Execute a new *Litmus Workflow*
+
+```$bash
+# Visit Litmus Frontend
+oc get route chaos-litmus-frontend-service -n litmus --template='{{ .spec.host }}'
+
+# Go to "Litmus Workflows -> Schedule a Workflow"
+ - Select chaos01 Agent
+ - Import a workflow using YAML
+ - Execute the chaos engineering test
+
+```
+
+- Review the pods in order to see the pods deletion
+
+```$bash
+oc get pods -n jump-app-dev
+NAME                                   READY   STATUS    RESTARTS   AGE
+back-golang-v1-7844f5d7cc-89prb       1/1     Running   0          12m26s
+back-python-v1-6c76df74d7-28cpv       1/1     Running   0          12m26s
+back-quarkus-v1-7dfb678b9f-gw5sh      1/1     Running   0          78s    <-------
+back-quarkus-v2-74cf8cd8dc-cdhzn      1/1     Running   0          12m25s
+back-springboot-v1-7c64f6b789-jt8wr   1/1     Running   0          12m25s
+front-javascript-v1-75c548bd9-k5wqz   1/1     Running   0          12m25s
+...
+
+```
+
+- Review the HTTP POST user load
+
+```$bash
+...
+running (10m01.1s), 00/10 VUs, 5220 complete and 0 interrupted iterations
 default ✓ [======================================] 10 VUs  10m0s
 
      ✓ status was 200
 
-     checks.........................: 100.00% ✓ 5166   ✗ 0   
-     data_received..................: 3.8 MB  6.3 kB/s
+     checks.........................: 100.00% ✓ 5220     ✗ 0   
+     data_received..................: 4.7 MB  7.7 kB/s
      data_sent......................: 1.9 MB  3.1 kB/s
-     http_req_blocked...............: avg=486.44µs min=1.37µs   med=5.71µs   max=269.04ms p(90)=10.7µs   p(95)=12.36µs 
-     http_req_connecting............: avg=213.11µs min=0s       med=0s       max=121.64ms p(90)=0s       p(95)=0s      
-     http_req_duration..............: avg=161.07ms min=111.63ms med=136.33ms max=3.24s    p(90)=209.96ms p(95)=252.57ms
-       { expected_response:true }...: avg=161.07ms min=111.63ms med=136.33ms max=3.24s    p(90)=209.96ms p(95)=252.57ms
-     http_req_failed................: 0.00%   ✓ 0      ✗ 5166
-     http_req_receiving.............: avg=263.05µs min=68.51µs  med=223.21µs max=2.1ms    p(90)=434.14µs p(95)=491.56µs
-     http_req_sending...............: avg=27.23µs  min=5.43µs   med=19.52µs  max=328.85µs p(90)=51.36µs  p(95)=59.65µs 
-     http_req_tls_handshaking.......: avg=214.83µs min=0s       med=0s       max=120.72ms p(90)=0s       p(95)=0s      
-     http_req_waiting...............: avg=160.78ms min=111.38ms med=136.08ms max=3.24s    p(90)=209.63ms p(95)=252.39ms
-     http_reqs......................: 5166    8.5939/s
-     iteration_duration.............: avg=1.16s    min=1.11s    med=1.13s    max=4.24s    p(90)=1.21s    p(95)=1.25s   
-     iterations.....................: 5166    8.5939/s
-     vus............................: 2       min=2    max=10
-     vus_max........................: 10      min=10   max=10
+     http_req_blocked...............: avg=530.44µs min=1.09µs   med=7.33µs   max=282.18ms p(90)=12.21µs  p(95)=15.09µs 
+     http_req_connecting............: avg=240.3µs  min=0s       med=0s       max=125.62ms p(90)=0s       p(95)=0s      
+     http_req_duration..............: avg=148.92ms min=119.06ms med=137.57ms max=617.47ms p(90)=182.3ms  p(95)=210.63ms
+       { expected_response:true }...: avg=148.92ms min=119.06ms med=137.57ms max=617.47ms p(90)=182.3ms  p(95)=210.63ms
+     http_req_failed................: 0.00%   ✓ 0        ✗ 5220
+     http_req_receiving.............: avg=270.58µs min=71.25µs  med=227.93µs max=6.71ms   p(90)=457.95µs p(95)=514.98µs
+     http_req_sending...............: avg=29.32µs  min=5.67µs   med=23.84µs  max=356.57µs p(90)=53.16µs  p(95)=61.4µs  
+     http_req_tls_handshaking.......: avg=216.43µs min=0s       med=0s       max=122.02ms p(90)=0s       p(95)=0s      
+     http_req_waiting...............: avg=148.62ms min=118.87ms med=137.3ms  max=617.03ms p(90)=181.98ms p(95)=210.32ms
+     http_reqs......................: 5220    8.683417/s
+     iteration_duration.............: avg=1.15s    min=1.12s    med=1.13s    max=1.61s    p(90)=1.18s    p(95)=1.21s   
+     iterations.....................: 5220    8.683417/s
+     vus............................: 3       min=3      max=10
+     vus_max........................: 10      min=10     max=10
 ```
 
-NOTE: As the previous k6 test load result shows, everything worked well without any issue or service loss
+After the test is finished, it is possible to find a **0% error rate**. Thanks to the Red Hat Openshift Service Mesh configuration, it is possible to avoid service loss when any microservices errors appear. The configuration that supports this model is the following:
+
+- **Retries**: Define a retry policy to use when a HTTP request fails
+
+```$bash
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: back-quarkus
+  namespace: jump-app-dev
+spec:
+  gateways:
+  - mesh
+  hosts:
+  - back-quarkus
+  http:
+  - route:
+      - destination:
+          host: back-quarkus.jump-app-dev.svc.cluster.local
+          subset: v1
+        weight: 100
+    retries:                                                     <------- Retry Policy Definition  (Default retry time -> 25ms+).
+      attempts: 5                                                <------- Number of maximum retries
+      perTryTimeout: 2s                                          <------- Timeout per attempt 
+      retryOn: connect-failure,refused-stream,503                <------- The conditions under which retry takes place
+```
+
+- **Circuit Breaking**: Circuit breaker implementation that tracks the status of each individual host in the upstream service and ejects failed hosts from the pool for a pre-defined period of time
+
+```$bash
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: back-quarkus
+  namespace: jump-app-dev
+spec:
+  host: back-quarkus.jump-app-dev.svc.cluster.local
+  subsets:
+  - name: v1
+    labels:
+      root: back-quarkus
+    trafficPolicy:                           <------- Traffic Policy Definition
+      outlierDetection:                      <------- Settings controlling eviction of unhealthy hosts from the load balancing pool
+        consecutive5xxErrors: 2              <------- The number of consecutive locally originated failures before ejection occurs (Def. 5)
+        interval: 1m                         <------- Time interval between ejection sweep analysis
+        baseEjectionTime: 15m                <------- Minimum ejection duration
+```
+
+## Summary
+
+The goal of chaos engineering is to identify weakness in a system through controlled experiments that introduce random and unpredictable behavior. A main benefit of chaos engineering is that organizations can use it to identify vulnerabilities before a hacker does or before a system failure.
+
+Solutions such as Red Hat Openshift Service Mesh allows applications to be more resilient and avoid errors managing the load balancer policies inside Kubernetes with a specific intelligence.
 
 ## Author 
 

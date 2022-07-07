@@ -135,7 +135,7 @@ spec:
                 spec:
                   appinfo:
                     appns: jump-app-dev
-                    applabel: app=back-python
+                    applabel: app=back-quarkus-v1
                     appkind: deployment
                   jobCleanUpPolicy: retain
                   engineState: active
@@ -146,13 +146,13 @@ spec:
                         components:
                           env:
                             - name: TOTAL_CHAOS_DURATION
-                              value: "30"
+                              value: "120"
                             - name: CHAOS_INTERVAL
-                              value: "10"
+                              value: "30"
                             - name: FORCE
                               value: "false"
                             - name: PODS_AFFECTED_PERC
-                              value: "66"
+                              value: "80"
       container:
         args:
           - -file=/tmp/chaosengine-pod-delete.yaml
